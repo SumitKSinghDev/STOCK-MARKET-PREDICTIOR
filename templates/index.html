@@ -1,0 +1,36 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Stock Predictor (Dynamic) - DMDW</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1>Stock Predictor (Dynamic) — DMDW Project</h1>
+    <p>Enter any Yahoo Finance ticker (examples: AAPL, TSLA, RELIANCE.NS, TCS.NS)</p>
+
+    <form action="/predict" method="post">
+      <div class="form-row">
+        <label>Ticker symbol</label>
+        <input type="text" name="ticker" placeholder="{{ example_ticker }}" required>
+      </div>
+
+      <div class="form-row">
+        <label>History period</label>
+        <select name="period">
+          <option value="6mo">6 months</option>
+          <option value="1y" selected>1 year</option>
+          <option value="2y">2 years</option>
+          <option value="5y">5 years</option>
+        </select>
+      </div>
+
+      <button type="submit">Fetch & Predict</button>
+    </form>
+
+    <p class="note">Note: This demo trains a simple Linear Regression on recent data to predict the next trading day's close. It's for learning/demonstration only — not financial advice.</p>
+  </div>
+</body>
+</html>

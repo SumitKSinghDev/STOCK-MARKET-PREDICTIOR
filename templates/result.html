@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Stock Prediction Result</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>📈 Stock Price Prediction Result</h1>
+
+        {% if error %}
+            <p style="color: red; font-weight:bold;">{{ error }}</p>
+            <a href="/">⟲ Back</a>
+        {% else %}
+            <p><strong>Ticker:</strong> {{ ticker }}</p>
+            <p><strong>Latest Close (as of {{ last_date }}):</strong> ₹{{ latest_close }}</p>
+            <p><strong>Predicted Next Close (approx for {{ next_day }}):</strong> ₹{{ predicted_price }}</p>
+
+            <div class="metrics">
+                <h3>Model Metrics (on recent test subset)</h3>
+                <ul>
+                    <li>MAE: {{ metrics.mae | round(4) }}</li>
+                    <li>MSE: {{ metrics.mse | round(4) }}</li>
+                    <li>R²: {{ metrics.r2 | round(4) }}</li>
+                </ul>
+                <p>Training rows used: {{ rows }}</p>
+            </div>
+
+            <div class="chart" style="text-align:center;">
+                <h3>Last 90 Trading Days</h3>
+                <img src="data:image/png;base64,{{ chart_base64 }}" alt="price-chart" style="max-width:90%; margin:auto; display:block;" />
+            </div>
+
+            <a href="/">⟲ Predict another ticker</a>
+        {% endif %}
+    </div>
+</body>
+</html>
