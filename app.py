@@ -20,13 +20,54 @@ app = Flask(__name__)
 # 1️⃣ Fetch stock data
 # ---------------------------------------------------------
 def fetch_data(ticker, period='1y'):
-    """Fetch historical daily data for ticker using yfinance."""
+    """Fetch historical daily data for ticker using yfinance with fallbacks.
+
+    Handles occasional empty responses by trying alternative APIs and cleans up
+    MultiIndex columns that appear with some yfinance versions or configurations.
+    """
     try:
-        df = yf.download(ticker, period=period, interval='1d', progress=False)
+        attempts = []
+        # Primary: download API
+        attempts.append(lambda: yf.download(ticker, period=period, interval='1d', progress=False, auto_adjust=False, actions=False))
+        # Fallback: Ticker.history API
+        attempts.append(lambda: yf.Ticker(ticker).history(period=period, interval='1d', auto_adjust=False))
+
+        df = None
+        for attempt in attempts:
+            try:
+                tmp = attempt()
+            except Exception as inner_e:
+                print("yfinance attempt failed:", inner_e)
+                tmp = None
+            if tmp is not None and not tmp.empty:
+                df = tmp
+                break
+
+        if df is None or df.empty:
+            return None
+
+        # Normalize columns if MultiIndex (e.g., ('Open','AAPL'))
+        if isinstance(df.columns, pd.MultiIndex):
+            last_level = df.columns.get_level_values(-1)
+            # Prefer explicit ticker if present; else pick the first label
+            chosen = ticker if ticker in last_level else last_level.unique()[0]
+            df = df.xs(chosen, axis=1, level=-1)
+
+        # Ensure required columns exist
+        cols = list(df.columns)
+        if 'Close' not in cols and 'Adj Close' in cols:
+            df['Close'] = df['Adj Close']
+
+        required = ['Open', 'High', 'Low', 'Close', 'Volume']
+        available_required = [c for c in required if c in df.columns]
+        if len(available_required) < 3 or 'Close' not in df.columns:
+            # Not enough usable columns
+            return None
+
+        df = df[sorted(set(available_required + ['Close']))].copy()
+        df.dropna(how='any', inplace=True)
         if df.empty:
             return None
-        df = df[['Open','High','Low','Close','Volume']].copy()
-        df.dropna(inplace=True)
         return df
     except Exception as e:
         print("yfinance error:", e)
