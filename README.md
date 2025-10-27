@@ -38,11 +38,17 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-Run
+Run (Flask)
 ```powershell
 python app.py
 ```
 The app starts in debug mode on `http://127.0.0.1:5000/`.
+
+Run (Streamlit)
+```powershell
+streamlit run streamlit_app.py
+```
+The app will open in your browser (default `http://localhost:8501`).
 
 Usage
 1. Open the home page and enter a ticker (e.g., `RELIANCE.NS`, `TCS.NS`, `AAPL`).
